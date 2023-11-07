@@ -251,7 +251,7 @@ export interface Database {
           image: string | null;
           origin_url: string | null;
           title: string | null;
-          user_id: number | null;
+          user_id: string | null;
           views: number | null;
         };
         Insert: {
@@ -262,7 +262,7 @@ export interface Database {
           image?: string | null;
           origin_url?: string | null;
           title?: string | null;
-          user_id?: number | null;
+          user_id?: string | null;
           views?: number | null;
         };
         Update: {
@@ -273,7 +273,7 @@ export interface Database {
           image?: string | null;
           origin_url?: string | null;
           title?: string | null;
-          user_id?: number | null;
+          user_id?: string | null;
           views?: number | null;
         };
         Relationships: [];
@@ -405,8 +405,11 @@ export interface Database {
           custom_url: string | null;
           description: string | null;
           image: string | null;
+          ogs_id: number | null;
           origin_url: string | null;
           title: string | null;
+          urls_id: number | null;
+          user_id: string | null;
           views: number | null;
         };
         Relationships: [];

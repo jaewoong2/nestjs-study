@@ -1,42 +1,47 @@
+// todo-item.controller.ts
+
 import {
   Controller,
   Get,
   Post,
-  Body,
-  Patch,
-  Param,
+  Put,
   Delete,
+  Body,
+  Param,
 } from '@nestjs/common';
-import { TodosService } from './todos.service';
+import { TodoItemService } from './todos.service';
+import { TodoItem } from './entities/todoitem.entity';
 import { CreateTodoDto } from './dto/create-todo.dto';
-import { UpdateTodoDto } from './dto/update-todo.dto';
 
-@Controller('todos')
-export class TodosController {
-  constructor(private readonly todosService: TodosService) {}
-
-  @Post()
-  create(@Body() createTodoDto: CreateTodoDto) {
-    return this.todosService.create(createTodoDto);
-  }
+@Controller('todo')
+export class TodoItemController {
+  constructor(private readonly todoItemService: TodoItemService) {}
 
   @Get()
-  findAll() {
-    return this.todosService.findAll();
+  findAll(): Promise<TodoItem[]> {
+    return this.todoItemService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.todosService.findOne(+id);
+  findOne(@Param('id') id: number): Promise<TodoItem> {
+    return this.todoItemService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTodoDto: UpdateTodoDto) {
-    return this.todosService.update(+id, updateTodoDto);
+  @Post()
+  create(@Body() todoItemData: CreateTodoDto): Promise<TodoItem> {
+    return this.todoItemService.create(todoItemData);
+  }
+
+  @Put(':id')
+  update(
+    @Param('id') id: number,
+    @Body() updateData: Partial<TodoItem>,
+  ): Promise<TodoItem> {
+    return this.todoItemService.update(id, updateData);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.todosService.remove(+id);
+  delete(@Param('id') id: number): Promise<void> {
+    return this.todoItemService.delete(id);
   }
 }

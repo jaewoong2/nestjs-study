@@ -1,17 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TodosController } from './todos.controller';
-import { TodosService } from './todos.service';
+import { TodoItemController } from './todos.controller';
+import { TodoItemService } from './todos.service';
 
 describe('TodosController', () => {
-  let controller: TodosController;
+  let controller: TodoItemController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [TodosController],
-      providers: [TodosService],
+      controllers: [TodoItemController],
+      providers: [TodoItemService],
     }).compile();
 
-    controller = module.get<TodosController>(TodosController);
+    controller = module.get<TodoItemController>(TodoItemController);
   });
 
   it('should be defined', () => {
