@@ -8,7 +8,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { TodoList } from './todolist.entity';
+import { User } from './user.entity';
 
 @Entity()
 export class TodoItem {
@@ -28,6 +28,6 @@ export class TodoItem {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne(() => TodoList, (todolist) => todolist.id, { nullable: false })
-  todolist: TodoList;
+  @ManyToOne(() => User, (user) => user.id, { nullable: false })
+  user: User;
 }

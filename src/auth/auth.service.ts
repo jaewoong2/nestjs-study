@@ -42,6 +42,9 @@ export class AuthService {
       withDeleted: true,
     });
 
+    console.log(user);
+    debugger;
+
     if (user && notException) {
       throw new BadRequestException('이미 존재하는 이메일 입니다.');
     }
@@ -56,12 +59,15 @@ export class AuthService {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async jwtLogin({ password, ...payload }: User) {
     return {
-      token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(payload),
+      refresh_token: this.jwtService.sign(payload, {
+        expiresIn: '7d', // 리프레시 토큰의 유효 기간
+      }),
     };
   }
 
   async jwtSignin(data: CreateUserDto) {
-    await this.userRepository.findOne({ where: { email: data.email } });
+    await this.findOneByEmail(data.email);
 
     const password = await this.hashPassword(data.password);
 
@@ -72,7 +78,6 @@ export class AuthService {
     });
 
     await this.userRepository.save(todoItem);
-
     return todoItem;
   }
 }

@@ -8,10 +8,13 @@ import {
   Delete,
   Body,
   Param,
+  UseGuards,
 } from '@nestjs/common';
 import { TodoItemService } from './todos.service';
 import { TodoItem } from './entities/todoitem.entity';
 import { CreateTodoDto } from './dto/create-todo.dto';
+import { JwtAuthGuard } from 'src/auth/guard/auth.guard';
+import { User } from 'src/auth/auth.decorator';
 
 @Controller('todo')
 export class TodoItemController {
@@ -28,10 +31,12 @@ export class TodoItemController {
   }
 
   @Post()
-  create(@Body() todoItemData: CreateTodoDto): Promise<TodoItem> {
-    return this.todoItemService.create(todoItemData);
+  @UseGuards(JwtAuthGuard)
+  create(@Body() todoItemData: CreateTodoDto, @User() user): Promise<TodoItem> {
+    return this.todoItemService.create(todoItemData, user);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
   update(
     @Param('id') id: number,

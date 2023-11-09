@@ -5,12 +5,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { TodoItem } from './entities/todoitem.entity';
 import { Repository } from 'typeorm';
 import { CreateTodoDto } from './dto/create-todo.dto';
+import { TodoList } from './entities/todolist.entity';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class TodoItemService {
   constructor(
     @InjectRepository(TodoItem)
     private readonly todoItemRepository: Repository<TodoItem>,
+    @InjectRepository(TodoList)
+    private readonly todolistRepository: Repository<TodoList>,
   ) {}
 
   findAll(): Promise<TodoItem[]> {
@@ -21,8 +25,26 @@ export class TodoItemService {
     return this.todoItemRepository.findOneBy({ id: id });
   }
 
-  async create(todoItemData: CreateTodoDto): Promise<TodoItem> {
-    const todoItem = this.todoItemRepository.create(todoItemData);
+  async create(todoItemData: CreateTodoDto, user: User): Promise<TodoItem> {
+    const todolist = this.todolistRepository.create({
+      title: user.email,
+      user: {
+        email: user.email,
+        username: user.username,
+        id: user.id,
+      },
+    });
+
+    const todoItem = this.todoItemRepository.create({
+      ...todoItemData,
+      user: {
+        email: user.email,
+        username: user.username,
+        id: user.id,
+      },
+    });
+
+    await this.todolistRepository.save(todolist);
     await this.todoItemRepository.save(todoItem);
     return todoItem;
   }

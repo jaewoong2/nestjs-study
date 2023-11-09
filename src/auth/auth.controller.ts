@@ -15,6 +15,7 @@ export class AuthController {
     return token;
   }
 
+  @UseGuards(LocalServiceAuthGuard)
   @Post('create')
   async create(@Body() createUserDto: CreateUserDto) {
     return this.authService.jwtSignin(createUserDto);
