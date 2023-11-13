@@ -4,6 +4,7 @@ import { LocalServiceAuthGuard } from './guard/local-service.guard';
 import { User } from 'src/todos/entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Response } from 'express';
+import { RefreshUserDto } from './dto/refresh-user-dto';
 
 @Controller('auth')
 export class AuthController {
@@ -16,6 +17,22 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const token = await this.authService.jwtLogin(user);
+
+    res.cookie('Authorization', `Bearer ${token.access_token}`, {
+      httpOnly: true,
+    });
+
+    res.cookie('Refresh', `${token.refresh_token}`);
+
+    return token;
+  }
+
+  @Post('refresh')
+  async refresh(
+    @Body() refreshUserDto: RefreshUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const token = await this.authService.refresh(refreshUserDto);
 
     res.cookie('Authorization', `Bearer ${token.access_token}`, {
       httpOnly: true,
