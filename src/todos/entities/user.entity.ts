@@ -15,6 +15,9 @@ export class User {
   @Column()
   password: string;
 
+  @Column({ nullable: true })
+  refresh_token: string;
+
   @OneToMany(() => TodoList, (todolist) => todolist.user)
   todolists: TodoList[];
 }

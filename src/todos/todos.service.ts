@@ -17,8 +17,8 @@ export class TodoItemService {
     private readonly todolistRepository: Repository<TodoList>,
   ) {}
 
-  findAll(): Promise<TodoItem[]> {
-    return this.todoItemRepository.find();
+  findAll(user: User): Promise<TodoItem[]> {
+    return this.todoItemRepository.find({ where: { user: { id: user.id } } });
   }
 
   findOne(id: number): Promise<TodoItem> {

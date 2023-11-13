@@ -9,6 +9,7 @@ import { User } from 'src/todos/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UserToken } from './strategy/auth.strategy';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +18,11 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService, // auth.module의 JwtModule로부터 공급 받음
   ) {}
+
+  async isValidateToken(token: UserToken) {
+    const now = new Date().getTime();
+    return now <= token.exp;
+  }
 
   async validateServiceUser(email: string, password: string) {
     const user = await this.findOneByEmail(email, { notException: false });
@@ -58,12 +64,19 @@ export class AuthService {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async jwtLogin({ password, ...payload }: User) {
-    return {
+    const token = {
       access_token: this.jwtService.sign(payload),
       refresh_token: this.jwtService.sign(payload, {
         expiresIn: '7d', // 리프레시 토큰의 유효 기간
       }),
     };
+
+    await this.userRepository.update(
+      { id: payload.id },
+      { refresh_token: token.refresh_token },
+    );
+
+    return token;
   }
 
   async jwtSignin(data: CreateUserDto) {
@@ -71,13 +84,13 @@ export class AuthService {
 
     const password = await this.hashPassword(data.password);
 
-    const todoItem = this.userRepository.create({
+    const user = this.userRepository.create({
       email: data.email,
       username: data.username,
       password,
     });
 
-    await this.userRepository.save(todoItem);
-    return todoItem;
+    await this.userRepository.save(user);
+    return user;
   }
 }

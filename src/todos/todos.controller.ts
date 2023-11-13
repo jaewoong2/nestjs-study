@@ -15,14 +15,16 @@ import { TodoItem } from './entities/todoitem.entity';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { JwtAuthGuard } from 'src/auth/guard/auth.guard';
 import { User } from 'src/auth/auth.decorator';
+import { User as TUser } from './entities/user.entity';
 
 @Controller('todo')
 export class TodoItemController {
   constructor(private readonly todoItemService: TodoItemService) {}
 
   @Get()
-  findAll(): Promise<TodoItem[]> {
-    return this.todoItemService.findAll();
+  @UseGuards(JwtAuthGuard)
+  findAll(@User() user: TUser): Promise<TodoItem[]> {
+    return this.todoItemService.findAll(user);
   }
 
   @Get(':id')
@@ -32,7 +34,10 @@ export class TodoItemController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  create(@Body() todoItemData: CreateTodoDto, @User() user): Promise<TodoItem> {
+  create(
+    @Body() todoItemData: CreateTodoDto,
+    @User() user: TUser,
+  ): Promise<TodoItem> {
     return this.todoItemService.create(todoItemData, user);
   }
 
