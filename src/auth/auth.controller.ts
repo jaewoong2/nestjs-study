@@ -4,7 +4,8 @@ import { LocalServiceAuthGuard } from './guard/local-service.guard';
 import { User } from 'src/todos/entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Response } from 'express';
-import { RefreshUserDto } from './dto/refresh-user-dto';
+import { RefreshAuthGuard } from './guard/refresh.guard';
+import { UserToken } from './strategy/refresh.strategy';
 
 @Controller('auth')
 export class AuthController {
@@ -27,12 +28,13 @@ export class AuthController {
     return token;
   }
 
+  @UseGuards(RefreshAuthGuard)
   @Post('refresh')
   async refresh(
-    @Body() refreshUserDto: RefreshUserDto,
+    @Req() { user }: { user: UserToken },
     @Res({ passthrough: true }) res: Response,
   ) {
-    const token = await this.authService.refresh(refreshUserDto);
+    const token = await this.authService.refresh(user);
 
     res.cookie('Authorization', `Bearer ${token.access_token}`, {
       httpOnly: true,
