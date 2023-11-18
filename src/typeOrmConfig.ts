@@ -1,12 +1,21 @@
-import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
 
-export const typeOrmConfig: TypeOrmModuleOptions = {
-  type: 'postgres',
-  host: 'localhost',
-  port: 5432,
-  username: 'localtest',
-  password: 'localtest',
-  database: 'test',
-  autoLoadEntities: true,
-  synchronize: true, // in production, you might want to set this to false
-};
+@Injectable()
+export class TypeOrmConfigService implements TypeOrmOptionsFactory {
+  constructor(private configService: ConfigService) {}
+
+  createTypeOrmOptions(): TypeOrmModuleOptions {
+    return {
+      type: 'postgres',
+      host: this.configService.get<string>('POSTGRES_HOST'),
+      port: +this.configService.get<number>('POSTGRES_PORT'),
+      username: this.configService.get<string>('POSTGRES_USERNAME'),
+      password: this.configService.get<string>('POSTGRES_PASSWORD'),
+      database: this.configService.get<string>('POSTGRES_DATABASE'),
+      entities: ['dist/**/**/*.entity.{ts,js}'],
+      synchronize: true,
+    };
+  }
+}

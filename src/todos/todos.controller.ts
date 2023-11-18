@@ -21,6 +21,10 @@ import { User as TUser } from './entities/user.entity';
 export class TodoItemController {
   constructor(private readonly todoItemService: TodoItemService) {}
 
+  @Get('test') test() {
+    return 'test';
+  }
+
   @Get()
   @UseGuards(JwtAuthGuard)
   findAll(@User() user: TUser): Promise<TodoItem[]> {

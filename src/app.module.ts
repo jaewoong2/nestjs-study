@@ -5,13 +5,16 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TodosModule } from './todos/todos.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { typeOrmConfig } from './typeOrmConfig';
 import { AuthModule } from './auth/auth.module';
+import { TypeOrmConfigService } from './typeOrmConfig';
 
 @Module({
   controllers: [AppController],
   imports: [
-    TypeOrmModule.forRoot(typeOrmConfig),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useClass: TypeOrmConfigService,
+    }),
     TodosModule,
     PassportModule,
     ConfigModule.forRoot({
