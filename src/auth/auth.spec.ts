@@ -11,7 +11,6 @@ describe('Auth', () => {
 
     provider = module.get<Auth>(Auth);
   });
-
   it('should be defined', () => {
     expect(provider).toBeDefined();
   });

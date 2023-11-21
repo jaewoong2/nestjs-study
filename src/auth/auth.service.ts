@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserToken } from './strategy/auth.strategy';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +20,36 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService, // auth.module의 JwtModule로부터 공급 받음
   ) {}
+
+  async sendMagicLink(email: string): Promise<void> {
+    const payload = { email };
+    const token = this.jwtService.sign(payload);
+
+    const link = `https://newsubs.site?token=${token}`;
+
+    // Nodemailer 설정
+    const transporter = nodemailer.createTransport({
+      // SMTP 설정 (예: Gmail, Outlook 등)
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: 'jwisgenius@gmail.com',
+        pass: 'tfdt azps dkxm ilrh',
+      },
+    });
+
+    // 이메일 옵션 설정
+    const mailOptions = {
+      from: '"Lime" <jwisgenius@gmail.com>',
+      to: email,
+      subject: 'Login Magic Link',
+      html: `<p>Click <a href="${link}">here</a> to log in</p>`,
+    };
+
+    // 이메일 전송
+    await transporter.sendMail(mailOptions);
+  }
 
   async isValidateToken(token: number) {
     const now = new Date().getTime();
@@ -91,7 +122,7 @@ export class AuthService {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async jwtLogin({ password, ...payload }: User) {
+  async jwtLogin({ password, ...payload }: Partial<User>) {
     const token = {
       access_token: this.jwtService.sign(payload),
       refresh_token: this.jwtService.sign(payload, {

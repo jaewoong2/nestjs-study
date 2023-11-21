@@ -6,10 +6,18 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { Response } from 'express';
 import { RefreshAuthGuard } from './guard/refresh.guard';
 import { UserToken } from './strategy/refresh.strategy';
+import { LoginEmailDto } from './dto/login-email.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
+
+  @Post('login-email')
+  async sendEmail(@Body() loginEmail: LoginEmailDto) {
+    this.authService.sendMagicLink(loginEmail.email);
+
+    return 'Mail Send';
+  }
 
   @UseGuards(LocalServiceAuthGuard)
   @Post('login')
@@ -41,7 +49,6 @@ export class AuthController {
     });
 
     res.cookie('Refresh', `${token.refresh_token}`);
-
     return token;
   }
 
