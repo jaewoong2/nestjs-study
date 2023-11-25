@@ -1,4 +1,13 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalServiceAuthGuard } from './guard/local-service.guard';
 import { User } from 'src/todos/entities/user.entity';
@@ -13,10 +22,19 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login-email')
-  async sendEmail(@Body() loginEmail: LoginEmailDto) {
-    this.authService.sendMagicLink(loginEmail.email);
-
+  async sendEmail(@Body() { redirectTo, email }: LoginEmailDto) {
+    this.authService.sendMagicLink({ redirectTo, email });
     return 'Mail Send';
+  }
+
+  @Get('login-email/:token')
+  async getToken(
+    @Param('token') token: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { redirectTo } = await this.authService.loginByMagiclink(token);
+
+    return res.redirect(redirectTo);
   }
 
   @UseGuards(LocalServiceAuthGuard)

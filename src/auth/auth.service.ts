@@ -12,6 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserToken } from './strategy/auth.strategy';
 import * as nodemailer from 'nodemailer';
+import { LoginEmailDto } from './dto/login-email.dto';
 
 @Injectable()
 export class AuthService {
@@ -21,11 +22,50 @@ export class AuthService {
     private readonly jwtService: JwtService, // auth.module의 JwtModule로부터 공급 받음
   ) {}
 
-  async sendMagicLink(email: string): Promise<void> {
-    const payload = { email };
-    const token = this.jwtService.sign(payload);
+  async loginByMagiclink(token: string) {
+    try {
+      const decodedToken = this.jwtService.decode(token);
 
-    const link = `https://newsubs.site?token=${token}`;
+      if (typeof decodedToken === 'string') throw new UnauthorizedException();
+
+      if (!('email' in decodedToken && 'redirectTo' in decodedToken)) {
+        throw new UnauthorizedException('옳지 않은 Token 입니다');
+      }
+
+      const { email, redirectTo } = decodedToken;
+
+      const user = await this.userRepository.findOne({ where: { email } });
+      const refreshToken = this.jwtService.sign(
+        { email },
+        {
+          expiresIn: '7d', // 리프레시 토큰의 유효 기간
+        },
+      );
+
+      if (user && user.access_token === token) {
+        throw new UnauthorizedException('만료된 토큰 입니다.');
+      }
+
+      this.userRepository.save({
+        email,
+        username: email,
+        access_token: token,
+        refresh_token: refreshToken,
+      });
+
+      return {
+        email,
+        redirectTo: new URL(redirectTo).href,
+      };
+    } catch (err) {
+      throw new UnauthorizedException(err.message);
+    }
+  }
+
+  async sendMagicLink({ email, redirectTo }: LoginEmailDto): Promise<void> {
+    const payload = { email, redirectTo };
+    const token = this.jwtService.sign(payload);
+    const link = `${process.env.REDIRECT_MAIL}/${token}`;
 
     // Nodemailer 설정
     const transporter = nodemailer.createTransport({
@@ -34,8 +74,8 @@ export class AuthService {
       port: 587,
       secure: false, // true for 465, false for other ports
       auth: {
-        user: 'jwisgenius@gmail.com',
-        pass: 'tfdt azps dkxm ilrh',
+        user: process.env.GOOGLE_APP_EMAIL,
+        pass: process.env.GOOGLE_APP_PASSOWRD,
       },
     });
 
@@ -77,7 +117,7 @@ export class AuthService {
 
     await this.userRepository.update(
       { id: payload.id },
-      { refresh_token: token.refresh_token },
+      { refresh_token: token.refresh_token, access_token: token.access_token },
     );
 
     return token;
@@ -107,9 +147,6 @@ export class AuthService {
       withDeleted: true,
     });
 
-    console.log(user);
-    debugger;
-
     if (user && notException) {
       throw new BadRequestException('이미 존재하는 이메일 입니다.');
     }
@@ -132,7 +169,7 @@ export class AuthService {
 
     await this.userRepository.update(
       { id: payload.id },
-      { refresh_token: token.refresh_token },
+      { refresh_token: token.refresh_token, access_token: token.access_token },
     );
 
     return token;

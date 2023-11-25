@@ -12,11 +12,14 @@ export class User {
   @Column()
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   password: string;
 
   @Column({ nullable: true })
   refresh_token: string;
+
+  @Column({ nullable: true })
+  access_token: string;
 
   @OneToMany(() => TodoList, (todolist) => todolist.user)
   todolists: TodoList[];
